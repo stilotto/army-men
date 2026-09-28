@@ -1,0 +1,18 @@
+<!doctype html><html><body style="margin:0;background:#222"><script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { getFigure, POSE_NAMES } from '/src/units/figure.js';
+const r = new THREE.WebGLRenderer({antialias:true}); r.setSize(innerWidth,innerHeight); document.body.appendChild(r.domElement);
+r.toneMapping = THREE.ACESFilmicToneMapping; r.shadowMap.enabled = true;
+const s = new THREE.Scene(); s.background = new THREE.Color('#ddd');
+s.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment()).texture;
+const d = new THREE.DirectionalLight('#fff', 2); d.position.set(3,6,5); d.castShadow = true; s.add(d);
+const q = new URLSearchParams(location.search);
+const view = q.get('view') || 'front';
+const mat = new THREE.MeshPhysicalMaterial({color:'#4b6b2a', roughness:0.42, clearcoat:0.4, clearcoatRoughness:0.3});
+POSE_NAMES.forEach((p,i)=>{ const f = getFigure(p); const m = new THREE.Mesh(f.geometry, mat); m.castShadow = true; m.position.x = (i-(POSE_NAMES.length-1)/2)*1.8; s.add(m);});
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({color:'#cbb'})); floor.rotation.x=-Math.PI/2; floor.receiveShadow = true; s.add(floor);
+const c = new THREE.PerspectiveCamera(30, innerWidth/innerHeight, 0.1, 100);
+if (view==='front') c.position.set(0,2.5,14); else if (view==='side') c.position.set(14,2.5,0.01); else if (view==='top') c.position.set(0,16,0.01); else c.position.set(-8,5,10);
+const fi = q.get('i'); if (fi!==null){ const x=(+fi-(POSE_NAMES.length-1)/2)*1.8; c.position.set(x-2.2,2.2,3.2); c.lookAt(x,0.8,0);} else c.lookAt(0,0.8,0); r.render(s,c); window.done = true;
+</script></body></html>

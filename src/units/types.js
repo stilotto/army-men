@@ -1,0 +1,112 @@
+// Unit roster and the kitchen-floor rules each figure plays by.
+// Ranges and moves are counted in tiles (diagonals count as one, like kids do).
+
+export const UNIT_TYPES = {
+  officer: {
+    name: 'Officer',
+    pose: 'officer',
+    weapon: 'pistol',
+    move: 2,
+    range: 2,
+    dice: 1,
+    hit: 4,
+    blurb: 'Pistol and field glasses. Friends within 2 tiles get +1 to hit.',
+  },
+  rifle: {
+    name: 'Rifleman',
+    pose: 'rifleAim',
+    weapon: 'rifle',
+    move: 2,
+    range: 4,
+    dice: 1,
+    hit: 4,
+    blurb: 'The standing carbine guy. Reliable.',
+  },
+  prone: {
+    name: 'Prone Rifleman',
+    pose: 'rifleProne',
+    weapon: 'rifle',
+    move: 1,
+    range: 5,
+    dice: 1,
+    hit: 3,
+    prone: true,
+    blurb: 'Lying flat: steady aim, and harder to hit (-1 to enemy rolls).',
+  },
+  charger: {
+    name: 'Charging Rifleman',
+    pose: 'rifleArmsOut',
+    weapon: 'rifle',
+    move: 3,
+    range: 3,
+    dice: 1,
+    hit: 4,
+    blurb: 'Arms flung wide, running in. Moves 3.',
+  },
+  bazooka: {
+    name: 'Bazooka',
+    pose: 'bazooka',
+    weapon: 'bazooka',
+    move: 2,
+    range: 3,
+    dice: 1,
+    hit: 3,
+    explosive: true,
+    blurb: 'Rocket hits on 3+. Ignores prone and cover.',
+  },
+  mg: {
+    name: 'Machine Gun',
+    pose: 'machineGun',
+    weapon: 'mg',
+    move: 1,
+    range: 5,
+    dice: 3,
+    hit: 5,
+    heavy: true,
+    blurb: 'Rolls 3 dice. Can’t move and fire in the same turn.',
+  },
+  mortar: {
+    name: 'Mortar',
+    pose: 'mortar',
+    weapon: 'mortar',
+    move: 1,
+    range: 7,
+    minRange: 2,
+    dice: 1,
+    hit: 4,
+    heavy: true,
+    indirect: true,
+    blast: true,
+    blurb: 'Lobs over anything (range 2-7). Blast can knock over neighbours too.',
+  },
+  flame: {
+    name: 'Flamethrower',
+    pose: 'flamethrower',
+    weapon: 'flame',
+    move: 2,
+    range: 2,
+    dice: 2,
+    hit: 3,
+    ignoresCover: true,
+    blurb: 'Two dice, hits on 3+. Nothing hides from fire.',
+  },
+};
+
+// Starting line-up per side, in board coordinates relative to that side's
+// back row (row 0 = back row, row 1 = front row of the deployment zone).
+export const LINEUP = [
+  { type: 'mortar', c: 2, r: 0 },
+  { type: 'officer', c: 5, r: 0 },
+  { type: 'mg', c: 8, r: 0 },
+  { type: 'prone', c: 11, r: 0 },
+  { type: 'rifle', c: 1, r: 1 },
+  { type: 'flame', c: 4, r: 1 },
+  { type: 'charger', c: 6, r: 1 },
+  { type: 'bazooka', c: 7, r: 1 },
+  { type: 'rifle', c: 10, r: 1 },
+];
+
+export const TEAMS = {
+  green: { name: 'Green Army', color: '#3e5e24', sheen: '#9fcf6a', ui: '#6f9a3a' },
+  tan: { name: 'Tan Army', color: '#b08f5c', sheen: '#fff0c8', ui: '#c8a46a' },
+};

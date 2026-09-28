@@ -1,0 +1,18 @@
+{
+  "name": "army-men",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Turn-based plastic army men on the kitchen floor.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

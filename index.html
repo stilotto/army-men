@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Army Men: Kitchen Floor</title>
+  <meta name="description" content="Turn-based plastic army men on a 1970s kitchen floor." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Special+Elite&family=Patrick+Hand&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div id="stage"></div>
+
+  <!-- Loading -->
+  <div id="loading" class="screen">
+    <div class="load-card">
+      <div class="logo small">ARMY MEN</div>
+      <div class="load-text">Dumping out the bucket&hellip;</div>
+      <div class="load-bar"><i></i></div>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div id="title" class="screen hidden">
+    <div class="title-wrap">
+      <div class="logo">ARMY MEN</div>
+      <div class="tagline">Battles on the kitchen floor</div>
+      <div class="panel">
+        <h3>Pick a battlefield</h3>
+        <div id="rooms" class="rooms"></div>
+        <h3>Who&rsquo;s playing?</h3>
+        <div class="seg" id="mode">
+          <button data-mode="ai" class="on">Me vs. my brother<br /><small>(computer plays Tan)</small></button>
+          <button data-mode="hotseat">Two kids, one floor<br /><small>(pass &amp; play)</small></button>
+        </div>
+        <button id="start" class="big">Dump out the bucket!</button>
+        <button id="howto" class="link">How to play</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="turn" class="chip"><span class="dot"></span><span class="label"></span></div>
+    <div id="score" class="chip"></div>
+    <div id="views">
+      <button data-view="adult" class="on" title="Grown-up view (1)">&#x1F9CD; Grown-up</button>
+      <button data-view="kid" title="Kid&rsquo;s-eye view (2)">&#x1F441; Kid&rsquo;s eye</button>
+    </div>
+    <div id="tools">
+      <button id="sound" title="Sound">&#x1F50A;</button>
+      <button id="quality" title="Graphics quality">HQ</button>
+      <button id="help" title="How to play">?</button>
+      <button id="menu" title="Back to menu">&#x2630;</button>
+    </div>
+
+    <div id="card" class="hidden">
+      <div class="card-head"><span class="swatch"></span><span class="name"></span><span class="status"></span></div>
+      <div class="stats"></div>
+      <div class="blurb"></div>
+    </div>
+
+    <div id="roll" class="hidden">
+      <div class="roll-title"></div>
+      <div class="roll-dice"></div>
+      <div class="roll-mods"></div>
+    </div>
+
+    <button id="endturn">End turn &#x27A4;</button>
+    <div id="labels"></div>
+    <div id="toasts"></div>
+    <div id="banner"></div>
+    <div id="hint"></div>
+  </div>
+
+  <!-- Help -->
+  <div id="helpbox" class="screen hidden">
+    <div class="panel help">
+      <h2>Kitchen Floor Rules</h2>
+      <ul>
+        <li><b>Take turns.</b> On your turn every figure can <b>move</b> and then <b>shoot</b> once.</li>
+        <li><b>Tap a figure</b> to pick it up. Blue tiles show where it can go. Red rings mark who it can hit, with the number you need on the dice.</li>
+        <li><b>Roll to hit.</b> Any die at or above the number knocks the enemy over.</li>
+        <li><b>Cover:</b> ducking behind cereal boxes, cans, sponges or spoons makes you harder to hit. Tall things block shots completely.</li>
+        <li><b>Lying flat</b> soldiers are harder to hit. Bazookas, mortars and flamethrowers don&rsquo;t care.</li>
+        <li><b>The Officer</b> gives +1 to friends within 2 tiles.</li>
+        <li><b>Machine gun &amp; mortar</b> can&rsquo;t move and fire in the same turn. The mortar lobs over anything, and its blast can topple the neighbors.</li>
+        <li>Knock over the whole enemy army to win!</li>
+      </ul>
+      <p class="keys">Drag to look around &middot; right-drag or two fingers to slide &middot; wheel or pinch to zoom &middot; <b>1</b>/<b>2</b> switch views &middot; <b>Enter</b> ends turn</p>
+      <button class="big" id="closehelp">Got it</button>
+    </div>
+  </div>
+
+  <!-- Game over -->
+  <div id="over" class="screen hidden">
+    <div class="panel">
+      <div class="logo small" id="over-title"></div>
+      <p id="over-text"></p>
+      <button class="big" id="again">Set &rsquo;em up again</button>
+      <button class="link" id="tomenu">Back to menu</button>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
