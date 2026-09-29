@@ -11,6 +11,8 @@ export class CameraRig {
     this.camera = camera;
     this.dom = dom;
     this.bounds = bounds;
+    this.wallHeight = 96;
+    this.adultDist = 108;
     this.mode = 'adult';
     // Desired and current state; current eases toward desired each frame.
     this.want = { target: new THREE.Vector3(0, 0, 2), yaw: 0, pitch: 0.82, dist: 108 };
@@ -31,7 +33,7 @@ export class CameraRig {
       if (focus) w.target.set(focus.x, 1.2, focus.z);
       else w.target.y = 1.2;
     } else {
-      w.dist = 108;
+      w.dist = this.adultDist;
       w.pitch = 0.82;
       w.target.y = 0;
       if (!focus) w.target.set(0, 0, 2);
@@ -75,7 +77,7 @@ export class CameraRig {
     if (this.mode === 'adult') w.pitch = THREE.MathUtils.clamp(w.pitch, lim.minPitch, lim.maxPitch);
     const b = this.bounds;
     w.target.x = THREE.MathUtils.clamp(w.target.x, b.x0 + 10, b.x1 - 10);
-    w.target.z = THREE.MathUtils.clamp(w.target.z, b.z0 + 26, b.z1 - 10);
+    w.target.z = THREE.MathUtils.clamp(w.target.z, b.z0 + b.pad, b.z1 - 10);
 
     const k = 1 - Math.exp(-dt * 5);
     c.target.lerp(w.target, k);
@@ -93,7 +95,15 @@ export class CameraRig {
     );
     // Keep the eye inside the room so walls never swallow the view.
     pos.x = THREE.MathUtils.clamp(pos.x, b.x0 + 3, b.x1 - 3);
-    pos.z = THREE.MathUtils.clamp(pos.z, b.z0 + 26, b.z1 - 3);
+    pos.z = THREE.MathUtils.clamp(pos.z, b.z0 + b.pad, b.z1 - 3);
+    // Low down, never end up inside the solid parts of the house.
+    for (const s of b.solids) {
+      if (pos.y > this.wallHeight || pos.x < s.x0 - 3 || pos.x > s.x1 + 3 || pos.z < s.z0 - 3 || pos.z > s.z1 + 3) continue;
+      const out = [[s.x0 - 3 - pos.x, 0], [s.x1 + 3 - pos.x, 0], [0, s.z0 - 3 - pos.z], [0, s.z1 + 3 - pos.z]]
+        .sort((p, q) => Math.abs(p[0] + p[1]) - Math.abs(q[0] + q[1]))[0];
+      pos.x += out[0];
+      pos.z += out[1];
+    }
     this.camera.position.copy(pos);
     const look = c.target.clone();
     if (this.mode === 'kid') look.y += 1.5;

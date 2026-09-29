@@ -320,6 +320,148 @@ export function makeWallpaperTexture(seed = 11) {
   return t;
 }
 
+// Flower-power wallpaper: orange, yellow and brown blooms packed onto a
+// chocolate ground. `inches` is how much wall one repeat covers.
+export function makeFlowerWallpaper(seed = 23) {
+  const rng = makeRng(seed);
+  const S = 1024;
+  const c = canvas(S);
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#3a1c0c';
+  ctx.fillRect(0, 0, S, S);
+  const kinds = [bigBloom, bigBloom, petalFlower, petalFlower, sunburst, daisy];
+  // Jittered grid so blooms pack edge to edge the way the real paper does.
+  const N = 6;
+  const cell = S / N;
+  const spots = [];
+  for (let j = 0; j < N; j++) {
+    for (let i = 0; i < N; i++) {
+      const kind = kinds[Math.floor(rng() * kinds.length)];
+      const big = kind === bigBloom;
+      spots.push({
+        x: (i + 0.5 + (j % 2) * 0.5 + (rng() - 0.5) * 0.3) * cell,
+        y: (j + 0.5 + (rng() - 0.5) * 0.3) * cell,
+        r: cell * (big ? 0.62 : 0.4 + rng() * 0.16),
+        kind, big, a: rng() * Math.PI,
+      });
+    }
+  }
+  // Small fillers in the gaps.
+  for (let k = 0; k < 40; k++) {
+    spots.push({ x: rng() * S, y: rng() * S, r: 14 + rng() * 16, kind: rng() < 0.5 ? daisy : tinyFlower, a: rng() * 3 });
+  }
+  // Big ones first so smaller blooms overlap them.
+  spots.sort((p, q) => q.r - p.r);
+  for (const f of spots) {
+    for (const dx of [-S, 0, S]) {
+      for (const dy of [-S, 0, S]) {
+        const x = f.x + dx;
+        const y = f.y + dy;
+        if (x < -f.r * 1.2 || y < -f.r * 1.2 || x > S + f.r * 1.2 || y > S + f.r * 1.2) continue;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(f.a);
+        f.kind(ctx, f.r, rng);
+        ctx.restore();
+      }
+    }
+  }
+  ctx.globalAlpha = 0.12;
+  ctx.drawImage(noiseCanvas(64, rng, 3, [40, 20, 5]), 0, 0, S, S);
+  ctx.globalAlpha = 1;
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 4;
+  t.userData.inches = 30;
+  return t;
+}
+
+function petals(ctx, n, r, w, col, inner = 0) {
+  ctx.fillStyle = col;
+  for (let i = 0; i < n; i++) {
+    ctx.save();
+    ctx.rotate((i / n) * Math.PI * 2);
+    ctx.beginPath();
+    ctx.ellipse(inner + (r - inner) / 2, 0, (r - inner) / 2, w, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function disc(ctx, r, col) {
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function scallop(ctx, n, r, col) {
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    ctx.moveTo(Math.cos(a) * r * 0.62, Math.sin(a) * r * 0.62);
+    ctx.arc(Math.cos(a) * r * 0.72, Math.sin(a) * r * 0.72, r * 0.3, 0, Math.PI * 2);
+  }
+  ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Layered brown/orange bloom with a yellow heart.
+function bigBloom(ctx, r) {
+  scallop(ctx, 10, r, '#5c3219');
+  scallop(ctx, 10, r * 0.86, '#7a4524');
+  ctx.save();
+  ctx.rotate(Math.PI / 8);
+  scallop(ctx, 8, r * 0.64, '#c8641c');
+  ctx.restore();
+  scallop(ctx, 8, r * 0.46, '#ef9a2a');
+  disc(ctx, r * 0.24, '#f7c843');
+  petals(ctx, 8, r * 0.2, r * 0.05, '#fff1c4', r * 0.06);
+  disc(ctx, r * 0.07, '#8a4a18');
+}
+
+// Round-petalled flower in orange with a cream ring and dotted centre.
+function petalFlower(ctx, r, rng) {
+  const hot = rng() < 0.5;
+  petals(ctx, 6, r, r * 0.34, hot ? '#e8661e' : '#f0a02a');
+  petals(ctx, 6, r * 0.9, r * 0.24, hot ? '#f28a2e' : '#f7c843');
+  disc(ctx, r * 0.4, '#fff0cc');
+  disc(ctx, r * 0.3, '#e27a22');
+  disc(ctx, r * 0.18, '#6e3616');
+  ctx.fillStyle = '#f7c843';
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * r * 0.24, Math.sin(a) * r * 0.24, r * 0.035, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// Thin pointed petals, like a marigold seen from above.
+function sunburst(ctx, r, rng) {
+  const cols = rng() < 0.5 ? ['#e8801e', '#f7c843'] : ['#f2b632', '#fbe07a'];
+  petals(ctx, 24, r, r * 0.08, cols[0]);
+  ctx.save();
+  ctx.rotate(Math.PI / 24);
+  petals(ctx, 24, r * 0.78, r * 0.06, cols[1]);
+  ctx.restore();
+  disc(ctx, r * 0.26, '#c8641c');
+  disc(ctx, r * 0.15, '#7a3a14');
+}
+
+function daisy(ctx, r) {
+  petals(ctx, 8, r, r * 0.22, '#fbecc8');
+  disc(ctx, r * 0.32, '#f0a02a');
+  disc(ctx, r * 0.14, '#8a4a18');
+}
+
+function tinyFlower(ctx, r) {
+  petals(ctx, 5, r, r * 0.3, '#f7c843');
+  disc(ctx, r * 0.3, '#e8661e');
+}
+
 function drawDaisy(ctx, x, y, r, col) {
   ctx.save();
   ctx.translate(x, y);

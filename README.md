@@ -60,7 +60,7 @@ src/
   scene/world.js     renderer, lights, post-processing, floor and walls
   scene/textures.js  procedural linoleum, wood, wallpaper, dice faces, sprites
   scene/props.js     cabinets, fridge, stove, dinette, and floor terrain
-  rooms/index.js     battlefields (kitchen now; bathroom, game room, porch next)
+  rooms/index.js     battlefields (Mom's and Stilotto's kitchens; more coming)
   units/figure.js    procedural army-man poses (IK-posed, merged meshes)
   units/types.js     unit stats and starting line-up
   units/unitView.js  figure placement, hopping, recoil and toppling
@@ -77,6 +77,14 @@ src/
 Add an entry to `ROOMS` in `src/rooms/index.js` with a floor palette, a board
 position, terrain placements and a `furnish(group)` function that builds the
 furniture. Set `available: true` to unlock it on the title screen.
+
+Rooms that aren't a plain rectangle (like Stilotto's Kitchen) can also give:
+
+- `board.play`: one string per row. `.` is floor you can play on, `t` is under
+  a table (shots pass, nobody stands there), anything else is wall or cabinet.
+- `deploy`: starting tiles for each side, in `LINEUP` order.
+- `walls`: wall segments, `solids`: blocked-off parts of the house, and
+  `wallpaper: 'flowerPower'` for the orange and yellow flowers.
 
 ## Hosting
 

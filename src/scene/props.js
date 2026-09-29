@@ -286,6 +286,87 @@ export function dinette() {
   return g;
 }
 
+/** Rectangular kitchen table with chrome legs and two vinyl chairs tucked in. */
+export function kitchenTable(w = 32, d = 26) {
+  const m = materials();
+  const g = new THREE.Group();
+  const band = box(w + 0.2, 1.4, d + 0.2, m.chrome, 0.2);
+  band.position.y = 28.9;
+  g.add(band);
+  const top = box(w, 1.2, d, m.tabletop, 0.3);
+  top.position.y = 29.2;
+  g.add(top);
+  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const leg = mesh(new THREE.CylinderGeometry(0.6, 0.6, 28.4, 14), m.chrome);
+    leg.position.set(x * (w / 2 - 2), 14.2, z * (d / 2 - 2));
+    g.add(leg);
+    const cap = mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.4, 14), m.black);
+    cap.position.set(x * (w / 2 - 2), 0.2, z * (d / 2 - 2));
+    g.add(cap);
+  }
+  // West chair and south chair, pushed in under the top.
+  for (const [x, z, ry] of [[-w / 2 + 4, 0, -Math.PI / 2], [0, d / 2 - 5, 0]]) {
+    const chair = vinylChair();
+    chair.position.set(x, 0, z);
+    chair.rotation.y = ry;
+    g.add(chair);
+  }
+  return g;
+}
+
+function vinylChair() {
+  const m = materials();
+  const chair = new THREE.Group();
+  const seat = box(16, 3, 16, m.vinyl, 1.2);
+  seat.position.y = 18;
+  chair.add(seat);
+  const back = box(15, 9, 2.5, m.vinyl, 1);
+  back.position.set(0, 30, 8);
+  chair.add(back);
+  for (const [lx, lz] of [[-7, -7], [7, -7], [-7, 7], [7, 7]]) {
+    const legM = mesh(new THREE.CylinderGeometry(0.45, 0.45, 16.5, 12), m.chrome);
+    legM.position.set(lx, 8.25, lz);
+    chair.add(legM);
+  }
+  for (const lx of [-7, 7]) {
+    const upright = mesh(new THREE.CylinderGeometry(0.45, 0.45, 14, 12), m.chrome);
+    upright.position.set(lx, 25, 8);
+    chair.add(upright);
+  }
+  return chair;
+}
+
+/** A closed interior door in its casing, facing +z, bottom at y = 0. */
+export function door(w = 28, h = 80) {
+  const m = materials();
+  const g = new THREE.Group();
+  const slab = box(w, h, 1.4, m.door, 0.15);
+  slab.position.set(0, h / 2, 0.7);
+  g.add(slab);
+  // Six-panel look: raised panels in two columns.
+  for (const [py, ph] of [[h * 0.82, h * 0.2], [h * 0.5, h * 0.3], [h * 0.16, h * 0.22]]) {
+    for (const px of [-w / 4, w / 4]) {
+      const panel = box(w / 2 - 4, ph, 0.4, m.door, 0.12);
+      panel.position.set(px, py, 1.5);
+      g.add(panel);
+    }
+  }
+  const t = 2.5;
+  for (const [x, y, cw, ch] of [[-(w + t) / 2, (h + t) / 2, t, h + t], [(w + t) / 2, (h + t) / 2, t, h + t], [0, h + t / 2, w + t * 2, t]]) {
+    const casing = box(cw, ch, 1, m.baseboard, 0.2);
+    casing.position.set(x, y, 0.5);
+    g.add(casing);
+  }
+  const knob = mesh(new THREE.SphereGeometry(1.1, 18, 12), m.brass);
+  knob.position.set(w / 2 - 3, 36, 2.4);
+  g.add(knob);
+  const rose = mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.5, 18), m.brass);
+  rose.rotation.x = Math.PI / 2;
+  rose.position.set(w / 2 - 3, 36, 1.6);
+  g.add(rose);
+  return g;
+}
+
 export function windowUnit(w = 36, h = 38) {
   const m = materials();
   const g = new THREE.Group();

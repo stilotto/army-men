@@ -80,6 +80,7 @@ export class UI {
         }
         this.roomId = r.id;
         wrap.querySelectorAll('.room').forEach((x) => x.classList.toggle('on', x === b));
+        this.emit('room', r.id);
       });
       wrap.appendChild(b);
     }

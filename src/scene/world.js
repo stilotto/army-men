@@ -6,7 +6,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { makeLinoleumAtlas, makeWallpaperTexture, makeTapeTexture, makeRng } from './textures.js';
+import { makeLinoleumAtlas, makeWallpaperTexture, makeFlowerWallpaper, makeTapeTexture, makeRng } from './textures.js';
 import { PROP_BUILDERS, contactShadow, materials } from './props.js';
 import { TERRAIN } from '../rooms/index.js';
 
@@ -91,9 +91,9 @@ export class World {
     this.buildFloor(def, footprints);
     this.buildWalls(def);
     this.buildLights(def);
-    this.buildTape(def);
+    if (!def.board.play) this.buildTape(def);
     this.terrain = this.buildTerrain(def);
-    this.bounds = { x0, x1, z0, z1, tile };
+    this.bounds = { x0, x1, z0, z1, tile, pad: def.camPad ?? 26, solids: def.solids || [] };
     return g;
   }
 
@@ -188,26 +188,34 @@ export class World {
   buildWalls(def) {
     const { x0, x1, z0, z1 } = def.room;
     const H = def.wallHeight;
-    const paper = makeWallpaperTexture();
+    const paper = def.wallpaper === 'flowerPower' ? makeFlowerWallpaper() : makeWallpaperTexture();
+    const inches = paper.userData.inches || 24;
     const m = materials();
-    const walls = [
-      { w: x1 - x0, pos: [(x0 + x1) / 2, H / 2, z0], ry: 0 },
-      { w: x1 - x0, pos: [(x0 + x1) / 2, H / 2, z1], ry: Math.PI },
-      { w: z1 - z0, pos: [x0, H / 2, (z0 + z1) / 2], ry: Math.PI / 2 },
-      { w: z1 - z0, pos: [x1, H / 2, (z0 + z1) / 2], ry: -Math.PI / 2 },
+    // Each wall runs from a to b; n is the way its paper faces. The east wall
+    // gets a real window opening, so only light through the glass reaches the floor.
+    const walls = def.walls || [
+      { a: [x0, z0], b: [x1, z0], n: [0, 1] },
+      { a: [x0, z1], b: [x1, z1], n: [0, -1] },
+      { a: [x0, z0], b: [x0, z1], n: [1, 0] },
+      { a: [x1, z0], b: [x1, z1], n: [-1, 0], window: true },
     ];
     const hole = def.window;
-    walls.forEach((wall, i) => {
-      // Walls are built from shapes so the east wall can have a real window
-      // opening: only light through the glass reaches the floor.
+    for (const wall of walls) {
+      const [ax, az] = wall.a;
+      const [bx, bz] = wall.b;
+      const [nx, nz] = wall.n;
+      const w = Math.hypot(bx - ax, bz - az);
+      const mx = (ax + bx) / 2;
+      const mz = (az + bz) / 2;
       const shape = new THREE.Shape();
-      shape.moveTo(-wall.w / 2, -H / 2);
-      shape.lineTo(wall.w / 2, -H / 2);
-      shape.lineTo(wall.w / 2, H / 2);
-      shape.lineTo(-wall.w / 2, H / 2);
+      shape.moveTo(-w / 2, -H / 2);
+      shape.lineTo(w / 2, -H / 2);
+      shape.lineTo(w / 2, H / 2);
+      shape.lineTo(-w / 2, H / 2);
       shape.closePath();
-      if (hole && i === 3) {
-        const cx = hole.z - (z0 + z1) / 2;
+      if (hole && wall.window) {
+        // Local x runs along (nz, -nx) for a wall facing (nx, nz).
+        const cx = (x1 - mx) * nz - (hole.z - mz) * nx;
         const cy = hole.y - H / 2;
         const p = new THREE.Path();
         p.moveTo(cx - hole.w / 2, cy - hole.h / 2);
@@ -220,23 +228,30 @@ export class World {
       const geo = new THREE.ShapeGeometry(shape);
       const tex = paper.clone();
       tex.needsUpdate = true;
-      tex.repeat.set(1 / 24, 1 / 24);
+      tex.repeat.set(1 / inches, 1 / inches);
       const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 });
       const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(...wall.pos);
-      mesh.rotation.y = wall.ry;
+      mesh.position.set(mx, H / 2, mz);
+      mesh.rotation.y = Math.atan2(nx, nz);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       this.roomGroup.add(mesh);
       // Baseboard with a little quarter-round shoe.
-      const bb = new THREE.Mesh(new THREE.BoxGeometry(wall.w, 3.5, 0.6), m.baseboard);
+      const bb = new THREE.Mesh(new THREE.BoxGeometry(w, 3.5, 0.6), m.baseboard);
       bb.position.set(0, -H / 2 + 1.75, 0.3);
       mesh.add(bb);
-      const shoe = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, wall.w, 8, 1, false, 0, Math.PI / 2), m.baseboard);
+      const shoe = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, w, 8, 1, false, 0, Math.PI / 2), m.baseboard);
       shoe.rotation.z = Math.PI / 2;
       shoe.position.set(0, -H / 2, 0.6);
       mesh.add(shoe);
-    });
+    }
+    // Solid space outside the kitchen gets a dark cap at wall height.
+    for (const b of def.solids || []) {
+      const cap = new THREE.Mesh(new THREE.PlaneGeometry(b.x1 - b.x0, b.z1 - b.z0), new THREE.MeshBasicMaterial({ color: '#2a2119' }));
+      cap.rotation.x = -Math.PI / 2;
+      cap.position.set((b.x0 + b.x1) / 2, H, (b.z0 + b.z1) / 2);
+      this.roomGroup.add(cap);
+    }
   }
 
   buildLights(def) {
@@ -251,7 +266,10 @@ export class World {
     ceiling.castShadow = true;
     ceiling.shadow.mapSize.set(2048, 2048);
     const sc = ceiling.shadow.camera;
-    sc.left = -95; sc.right = 95; sc.top = 85; sc.bottom = -85; sc.near = 10; sc.far = 260;
+    const { x0, x1, z0, z1 } = def.room;
+    const hx = Math.max(95, (x1 - x0) / 2 + 6);
+    const hz = Math.max(85, (z1 - z0) / 2 + 8);
+    sc.left = -hx; sc.right = hx; sc.top = hz; sc.bottom = -hz; sc.near = 10; sc.far = 260;
     ceiling.shadow.bias = -0.0004;
     ceiling.shadow.normalBias = 0.02;
     ceiling.shadow.radius = 5;

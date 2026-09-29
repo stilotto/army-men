@@ -8,12 +8,23 @@ export class Board {
   constructor(def, terrain) {
     this.cols = def.board.cols;
     this.rows = def.board.rows;
+    // Optional map of playable tiles: '.' floor, 't' under a table (can see
+    // through, can't stand), anything else is wall or cabinets.
+    this.play = def.board.play || null;
     this.terrain = new Map();
     for (const t of terrain) for (const [c, r] of t.tiles) this.terrain.set(key(c, r), t);
   }
 
   inside(c, r) {
-    return c >= 0 && r >= 0 && c < this.cols && r < this.rows;
+    if (c < 0 || r < 0 || c >= this.cols || r >= this.rows) return false;
+    return !this.play || this.play[r][c] === '.';
+  }
+
+  /** Walls and cabinets stop shots; open floor and table legs don't. */
+  wallAt(c, r) {
+    if (!this.play || c < 0 || r < 0 || c >= this.cols || r >= this.rows) return false;
+    const t = this.play[r][c];
+    return t !== '.' && t !== 't';
   }
 
   terrainAt(c, r) {
@@ -42,8 +53,9 @@ export function reachable(board, units, u) {
         const r = n.r + dr;
         const k = key(c, r);
         if (!board.inside(c, r) || seen.has(k) || board.terrainAt(c, r)) continue;
-        // No squeezing diagonally between two pieces of terrain.
-        if (dc && dr && board.terrainAt(n.c + dc, n.r) && board.terrainAt(n.c, n.r + dr)) continue;
+        // No squeezing diagonally between two pieces of terrain or wall.
+        const shut = (x, y) => !board.inside(x, y) || board.terrainAt(x, y);
+        if (dc && dr && shut(n.c + dc, n.r) && shut(n.c, n.r + dr)) continue;
         const occ = unitAt(units, c, r);
         if (occ && occ.team !== u.team) continue;
         const node = { c, r, path: [...n.path, [c, r]] };
@@ -67,6 +79,7 @@ export function hasLOS(board, a, b) {
     const c = Math.floor(x);
     const r = Math.floor(y);
     if ((c === a.c && r === a.r) || (c === b.c && r === b.r)) continue;
+    if (board.wallAt(c, r)) return false;
     const ter = board.terrainAt(c, r);
     if (ter && ter.blocks) return false;
   }

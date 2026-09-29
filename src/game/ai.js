@@ -1,6 +1,8 @@
 // The kid across the kitchen playing Tan: greedy but sensible. Shoots the
 // best target it can, otherwise advances toward cover and a good firing spot.
-import { reachable, targetsFor, dist, canAttack } from './rules.js';
+import { reachable, targetsFor, dist, canAttack, key } from './rules.js';
+
+const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
 
 const VALUE = { officer: 1.6, mg: 1.4, mortar: 1.3, bazooka: 1.2, flame: 1.2, prone: 1.0, rifle: 1.0, charger: 0.9 };
 const ORDER = ['mortar', 'mg', 'prone', 'rifle', 'bazooka', 'officer', 'charger', 'flame'];
@@ -15,7 +17,30 @@ function bestShot(game, u, from) {
   return best;
 }
 
+// Walking distance (in moves) from every tile to the nearest enemy, so the
+// kid goes around walls instead of pressing up against them.
+function enemyField(game, team) {
+  const { board } = game;
+  const field = new Map();
+  let frontier = game.units.filter((e) => e.alive && e.team !== team).map((e) => [e.c, e.r]);
+  for (const [c, r] of frontier) field.set(key(c, r), 0);
+  for (let d = 1; frontier.length; d++) {
+    const next = [];
+    for (const [c, r] of frontier) {
+      for (const [dc, dr] of DIRS) {
+        const k = key(c + dc, r + dr);
+        if (field.has(k) || !board.inside(c + dc, r + dr) || board.terrainAt(c + dc, r + dr)) continue;
+        field.set(k, d);
+        next.push([c + dc, r + dr]);
+      }
+    }
+    frontier = next;
+  }
+  return field;
+}
+
 function nearestEnemy(game, u, at) {
+  if (game.board.play && game.aiField) return game.aiField.get(key(at.c, at.r)) ?? 99;
   let best = Infinity;
   for (const e of game.units) if (e.alive && e.team !== u.team) best = Math.min(best, dist(at, e));
   return best;
@@ -49,6 +74,7 @@ export async function runAI(game) {
       continue;
     }
     // Pick a tile to move to.
+    game.aiField = enemyField(game, u.team);
     const moves = [...reachable(game.board, game.units, u).values()];
     let bestMove = null;
     let bestScore = scoreTile(game, u, u, shot);

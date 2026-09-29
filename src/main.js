@@ -23,6 +23,16 @@ const dice = new Dice(world.scene);
 let room = getRoom('kitchen');
 world.buildRoom(room);
 const rig = new CameraRig(world.camera, world.renderer.domElement, world.bounds);
+
+function useRoom(id) {
+  const next = getRoom(id);
+  if (next === room && world.def === room) return;
+  room = next;
+  world.buildRoom(room);
+  rig.bounds = world.bounds;
+  rig.wallHeight = room.wallHeight;
+  rig.adultDist = room.viewDist || 108;
+}
 const game = new Game({ world, fx, dice, sound, ui, rig });
 window.__game = game;
 
@@ -67,8 +77,9 @@ function setView(mode) {
   if (mode === 'kid' && !focus) {
     // Drop down behind your own lines, looking toward the enemy.
     const home = game.turn === 'tan' && game.mode === 'hotseat' ? -1 : 1;
-    rig.setMode('kid', new THREE.Vector3(0, 0, home * 6));
-    rig.want.yaw = home > 0 ? 0 : Math.PI;
+    const [hx, hz, yaw] = room.kidHome?.[home > 0 ? 'green' : 'tan'] || [0, home * 6, home > 0 ? 0 : Math.PI];
+    rig.setMode('kid', new THREE.Vector3(hx, 0, hz));
+    rig.want.yaw = yaw;
     rig.unwrapYaw();
     rig.want.dist = 52;
   } else {
@@ -79,12 +90,19 @@ function setView(mode) {
 
 ui.on('start', ({ room: id, mode }) => {
   sound.ensure();
-  room = getRoom(id);
+  useRoom(id);
   rig.attract = false;
   rig.want.yaw = 0;
   rig.unwrapYaw();
   setView(rig.mode);
   game.start(room, mode);
+});
+ui.on('room', (id) => {
+  // Show the picked room behind the title screen.
+  useRoom(id);
+  game.start(room, 'ai', true);
+  rig.want.target.set(0, 0, 2);
+  rig.want.dist = 135;
 });
 ui.on('endturn', () => {
   if (!game.busy && game.isHumanTurn()) game.endTurn();
@@ -123,7 +141,7 @@ function frame() {
   frames++;
   if (frames === 3) {
     ui.loaded();
-    if (params.has('autostart')) ui.emit('start', { room: 'kitchen', mode: params.get('mode') || 'ai' });
+    if (params.has('autostart')) ui.emit('start', { room: params.get('room') || 'kitchen', mode: params.get('mode') || 'ai' });
     if (params.get('view') === 'kid') setView('kid');
   }
   if (frames === 30) window.done = true;

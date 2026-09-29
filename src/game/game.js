@@ -78,9 +78,12 @@ export class Game {
     let id = 0;
     for (const team of ['tan', 'green']) {
       for (const l of LINEUP) {
-        // Tan deploys on the north rows (0-1), green on the south rows (7-8).
-        const r = team === 'tan' ? l.r : roomDef.board.rows - 1 - l.r;
-        const c = team === 'tan' ? roomDef.board.cols - 1 - l.c : l.c;
+        // Tan deploys on the north rows (0-1), green on the south rows (7-8),
+        // unless the room lists its own starting tiles.
+        const k = LINEUP.indexOf(l);
+        const [c, r] = roomDef.deploy
+          ? roomDef.deploy[team][k]
+          : [team === 'tan' ? roomDef.board.cols - 1 - l.c : l.c, team === 'tan' ? l.r : roomDef.board.rows - 1 - l.r];
         const u = {
           id: id++, type: l.type, def: UNIT_TYPES[l.type], team, c, r, alive: true, moved: false, fired: false,
         };
@@ -216,7 +219,7 @@ export class Game {
   }
 
   hover(tile) {
-    if (!tile || this.busy || !this.isHumanTurn()) {
+    if (!tile || this.busy || !this.isHumanTurn() || !this.board.inside(tile.c, tile.r)) {
       this.hoverTile.visible = false;
       return;
     }
@@ -307,7 +310,15 @@ export class Game {
     const cam = this.world.camera.position;
     const side = V(-(b.z - a.z), 0, b.x - a.x).normalize();
     if (side.dot(V(cam.x - a.x, 0, cam.z - a.z)) < 0) side.negate();
-    const spot = a.clone().addScaledVector(side, 5).addScaledVector(V().subVectors(b, a).normalize(), 2);
+    const onFloor = (p) => {
+      if (!this.board.play) return true;
+      const t = this.world.worldToTile(p);
+      return t && this.board.inside(t.c, t.r);
+    };
+    const fwd = V().subVectors(b, a).normalize();
+    let spot = a.clone().addScaledVector(side, 5).addScaledVector(fwd, 2);
+    if (!onFloor(spot)) spot = a.clone().addScaledVector(side, -5).addScaledVector(fwd, 2);
+    if (!onFloor(spot)) spot = a.clone().addScaledVector(fwd, 5);
     const fromDir = V(cam.x - spot.x, 0, cam.z - spot.z).normalize();
     this.ui.showRoll(att, tgt, opt, null);
     await this.dice.roll(values, spot, fromDir, (h) => this.sound.play('dice', { h }));
