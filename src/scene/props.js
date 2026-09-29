@@ -287,7 +287,7 @@ export function dinette() {
 }
 
 /** Rectangular kitchen table with chrome legs and two vinyl chairs tucked in. */
-export function kitchenTable(w = 32, d = 26) {
+export function kitchenTable(w = 32, d = 26, chairs = ['west', 'south']) {
   const m = materials();
   const g = new THREE.Group();
   const band = box(w + 0.2, 1.4, d + 0.2, m.chrome, 0.2);
@@ -304,8 +304,9 @@ export function kitchenTable(w = 32, d = 26) {
     cap.position.set(x * (w / 2 - 2), 0.2, z * (d / 2 - 2));
     g.add(cap);
   }
-  // West chair and south chair, pushed in under the top.
-  for (const [x, z, ry] of [[-w / 2 + 4, 0, -Math.PI / 2], [0, d / 2 - 5, 0]]) {
+  // Chairs pushed in under the top.
+  const spots = { west: [-w / 2 + 4, 0, -Math.PI / 2], south: [0, d / 2 - 5, 0], north: [0, -d / 2 + 5, Math.PI] };
+  for (const [x, z, ry] of chairs.map((c) => spots[c])) {
     const chair = vinylChair();
     chair.position.set(x, 0, z);
     chair.rotation.y = ry;

@@ -1,6 +1,7 @@
 // Battlefields. Each room describes its floor, its furniture and the stuff
 // lying around that becomes terrain. New rooms plug in here.
 import * as P from '../scene/props.js';
+import { House } from '../scene/house.js';
 
 export const TERRAIN = {
   cereal: { name: 'Cereal box', blocks: true, cover: true },
@@ -119,7 +120,7 @@ const kitchen = {
 const STILOTTO_PLAY = [
   // c: 0         1111
   //    0123456789 01234
-  '............###', // r0  top band
+  '............###', // r0  top band (opens west into the hall)
   '............###',
   '............###',
   '#######.....###', // r3  aisle: fridge / counter / range / counter | counters & sink
@@ -131,16 +132,16 @@ const STILOTTO_PLAY = [
   '#######.....###',
   '#######.....###',
   '#######.....###',
-  '#######.....###', // r12 end of the sink counter
-  '#######........',
-  '#######........',
-  '####......ttttt', // r15 bottom area; t = under the kitchen table
-  '####......ttttt',
-  '####......ttttt',
-  '####......ttttt',
-  '####...........',
-  '####...........', // r20
-];
+  '#######.....###',
+  '#######.....###',
+  '#######.....###', // r14 both counter runs end here
+  '...............', // r15 table end, open to the house west and south
+  '...............',
+  '..........ttttt', // t = under the kitchen table and chairs
+  '..........ttttt',
+  '..........ttttt',
+  '..........ttttt', // r20
+]
 
 const stilotto = {
   id: 'stilotto',
@@ -157,7 +158,7 @@ const stilotto = {
   // Starting tiles [c, r], in LINEUP order. Tan holds the top band, Green the table end.
   deploy: {
     tan: [[1, 0], [4, 0], [9, 0], [11, 2], [3, 1], [7, 2], [6, 1], [8, 2], [10, 1]],
-    green: [[5, 20], [7, 19], [9, 20], [12, 20], [4, 17], [8, 17], [6, 17], [9, 18], [11, 19]],
+    green: [[2, 20], [5, 19], [8, 20], [13, 16], [1, 17], [8, 17], [6, 17], [9, 18], [11, 16]],
   },
   // Kid's-eye starting spot for each side: [x, z, yaw].
   kidHome: { green: [4, 52, 0], tan: [-8, -62, Math.PI] },
@@ -191,7 +192,7 @@ const stilotto = {
     { type: 'block', c: 7, r: 9, rot: 0.5 },
     { type: 'sponge', c: 11, r: 9, rot: -0.2 },
     { type: 'can', c: 8, r: 11, rot: 0 },
-    { type: 'spoon', c: 12, r: 14, rot: 0 },
+    { type: 'spoon', c: 1, r: 15, rot: 0 },
     { type: 'sponge', c: 6, r: 16, rot: 0.3 },
   ],
   // Show-off flight: camera position, where it looks, seconds to the next shot.
@@ -203,7 +204,8 @@ const stilotto = {
     { pos: [16, 9, -30], look: [16, 4, 30], dur: 3.5, cap: 'Down the aisle' },
     { pos: [8, 50, -28], look: [60, 58, -28], dur: 4, cap: 'The window over the sink' },
     { pos: [24, 48, 10], look: [-20, 34, 1], dur: 4, cap: 'Fridge, range and gold counters' },
-    { pos: [-10, 42, 72], look: [44, 22, 50], dur: 4, cap: 'The kitchen table' },
+    { pos: [-10, 38, 48], look: [44, 20, 72], dur: 4, cap: 'The kitchen table' },
+    { pos: [10, 34, 70], look: [-120, 30, 220], dur: 4, cap: 'The rest of the house' },
     { pos: [16, 5, 52], look: [16, 5, -60], dur: 4, cap: 'Green Army’s view' },
     { pos: [0, 290, 60], look: [0, 0, -4], dur: 3, cap: '' },
   ],
@@ -211,15 +213,15 @@ const stilotto = {
   window: { z: -28, y: 60, w: 30, h: 36 },
   sun: { from: [210, 224, -78], to: [0, 0, -8], color: '#ffd29a' },
   // Solid, non-kitchen space: the hallway and closet behind the appliance wall.
-  solids: [{ x0: -60, x1: -28, z0: -60, z1: 84 }],
+  solids: [{ x0: -60, x1: -28, z0: -60, z1: 36 }],
   // Wall segments: a and b are ends, n is the direction the paper faces.
   walls: [
     { a: [-60, -84], b: [60, -84], n: [0, 1] },
-    { a: [-60, 84], b: [60, 84], n: [0, -1] },
-    { a: [-60, -84], b: [-60, 84], n: [1, 0] },
     { a: [60, -84], b: [60, 84], n: [-1, 0], window: true },
     { a: [-60, -60], b: [-28, -60], n: [0, -1] }, // hallway wall with the bedroom door
-    { a: [-28, -60], b: [-28, 84], n: [1, 0] }, // appliance wall, then closet wall
+    { a: [-28, -60], b: [-28, 36], n: [1, 0] }, // behind the appliances
+    { a: [-60, 36], b: [-28, 36], n: [0, 1] }, // end of the hall wall
+    // West and south stay open: you look into the rest of the house.
   ],
   furnish(group) {
     const X = (x) => x - 60; // sketch inches -> room coordinates
@@ -251,13 +253,13 @@ const stilotto = {
     }
 
     // Sink wall (fronts at x = 96): counter, sink under the window, counter.
-    for (const [z, w, opts] of [[20, 40, { doors: 2 }], [56, 32, { doors: 2, sink: true }], [88, 32, { doors: 2 }]]) {
+    for (const [z, w, opts] of [[20, 40, { doors: 2 }], [56, 32, { doors: 2, sink: true }], [96, 48, { doors: 3 }]]) {
       const run = P.cabinetRun(w, opts);
       run.rotation.y = face.west;
       run.position.set(X(108), 0, Z(z));
       group.add(run);
     }
-    for (const [z, w] of [[20, 40], [88, 32]]) {
+    for (const [z, w] of [[20, 40], [96, 48]]) {
       const up = P.upperCabinets(w, { doors: 2 });
       up.rotation.y = face.west;
       up.position.set(X(114), 54, Z(z));
@@ -268,26 +270,64 @@ const stilotto = {
     win.position.set(this.room.x1 - 0.2, 60, this.window.z);
     group.add(win);
 
-    // Doors: bedroom off the top band, closet off the table end.
+    // Bedroom door off the top band.
     const br = P.door(26, 80);
     br.rotation.y = face.north;
     br.position.set(X(16), 0, Z(24));
     group.add(br);
-    const closet = P.door(28, 80);
-    closet.rotation.y = face.east;
-    closet.position.set(X(32), 0, Z(140));
-    group.add(closet);
 
-    // Kitchen table against the east wall with two chairs tucked in.
-    const table = P.kitchenTable(32, 26);
-    table.position.set(X(104), 0, Z(134));
+    // Kitchen table in the south-east corner with two chairs tucked in.
+    const table = P.kitchenTable(32, 26, ['west', 'north']);
+    table.position.set(X(104), 0, Z(155));
     group.add(table);
 
+    this.surroundings(group);
     return [
-      { x: X(0), z: Z(24), w: 32, d: 144, soft: 5 },
+      { x: X(0), z: Z(24), w: 32, d: 96, soft: 5 },
       { x: X(24), z: Z(24), w: 32, d: 96, soft: 4 },
-      { x: X(96), z: Z(0), w: 24, d: 104, soft: 4 },
+      { x: X(96), z: Z(0), w: 24, d: 120, soft: 4 },
+      { x: X(0), z: Z(0), w: 120, d: 1, soft: 4 },
     ];
+  },
+  // The rest of the house past the open west and south edges.
+  surroundings(group) {
+    const h = new House(group, this.room, this.wallHeight);
+    const beige = h.color('#d9c7a2', 0.9);
+    const panel = h.panelMat();
+    // Wall-to-wall shag everywhere else, which is why the war stays on the
+    // linoleum. Hall runs west off the top band, den south-west, living room south.
+    h.floor(-300, -84, -60, -60, h.carpet('#8a4a22'));
+    h.floor(-300, -60, -60, 84, h.carpet('#7a5a2a'));
+    h.floor(-300, 84, 220, 330, h.carpet('#b8892c'));
+    h.floor(60, -84, 220, 84, h.carpet('#b8892c'));
+    // Threshold strips where the linoleum meets the rest of the house.
+    const alu = h.color('#cfcfcf', 0.3);
+    h.box(0.8, 0.35, 24, alu, -60.4, -72);
+    h.box(0.8, 0.35, 48, alu, -60.4, 60);
+    h.box(120.8, 0.35, 0.8, alu, -0.4, 84.4);
+    // Outer walls with windows glowing in the distance.
+    h.wall([-300, -84], [-60, -84], [0, 1], beige);
+    h.wall([-300, -84], [-300, 330], [1, 0], panel, [[-140, 40], [60, 40]]);
+    h.wall([-300, 330], [220, 330], [0, -1], beige, [[-120, 60], [40, 60], [170, 36]]);
+    h.wall([220, -84], [220, 330], [-1, 0], beige, [[80, 40]]);
+    h.wall([60, -84], [220, -84], [0, 1], beige);
+    // Den: paneling, a bookcase and a TV.
+    h.wall([-300, -60], [-150, -60], [0, 1], panel);
+    const wood = h.woodTexture();
+    h.box(40, 72, 12, wood, -220, -52);
+    for (let i = 0; i < 4; i++) h.box(36, 1.5, 11, wood, -220, -52, { y: 12 + i * 16 });
+    h.box(30, 22, 18, wood, -290, 10, { r: 1 });
+    h.box(2, 16, 20, h.color('#2b3a36', 0.2), -280.5, 10, { y: 24 });
+    h.armchair(-200, 20, -Math.PI / 2, '#6d7a32');
+    h.lamp(-250, -40);
+    // Living room: sofa under the big window, coffee table, chair, lamps.
+    h.sofa(-60, 300, Math.PI, '#a8561e');
+    h.box(48, 16, 22, wood, -60, 250, { r: 1 });
+    h.armchair(60, 230, -Math.PI / 2 - 0.4, '#c8742a');
+    h.lamp(20, 305);
+    h.lamp(-150, 305);
+    h.box(60, 30, 18, wood, 205, 200, { ry: Math.PI / 2, r: 1 });
+    h.box(4, 20, 26, h.color('#2b3a36', 0.2), 195, 200, { y: 30 });
   },
 };
 

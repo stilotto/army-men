@@ -174,7 +174,7 @@ export class World {
     ctx.filter = 'blur(10px)';
     ctx.strokeStyle = 'rgba(0,0,0,0.35)';
     ctx.lineWidth = 16;
-    ctx.strokeRect(0, 0, W, H);
+    if (!def.surroundings) ctx.strokeRect(0, 0, W, H);
     ctx.filter = 'blur(6px)';
     for (const f of footprints) {
       ctx.fillStyle = 'rgba(0,0,0,0.75)';
