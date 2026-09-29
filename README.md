@@ -77,3 +77,9 @@ src/
 Add an entry to `ROOMS` in `src/rooms/index.js` with a floor palette, a board
 position, terrain placements and a `furnish(group)` function that builds the
 furniture. Set `available: true` to unlock it on the title screen.
+
+## Hosting
+
+`.github/workflows/pages.yml` builds and deploys to GitHub Pages on every push
+to `main`. In the repo settings, set **Pages → Source** to **GitHub Actions**.
+The site then lives at https://stilotto.github.io/army-men/.
