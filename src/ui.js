@@ -36,6 +36,8 @@ export class UI {
     });
     $('#start').addEventListener('click', () => this.emit('start', { room: this.roomId, mode: this.mode }));
     $('#howto').addEventListener('click', () => this.showHelp(true));
+    $('#titletour').addEventListener('click', () => this.emit('view', 'tour'));
+    $('#tourstop').addEventListener('click', () => this.emit('stoptour'));
     $('#help').addEventListener('click', () => this.showHelp(true));
     $('#closehelp').addEventListener('click', () => this.showHelp(false));
     $('#helpbox').addEventListener('click', (e) => { if (e.target.id === 'helpbox') this.showHelp(false); });
@@ -54,7 +56,11 @@ export class UI {
       if (e.key === '2') this.emit('view', 'kid');
       if (e.key === 'v') this.emit('view', 'toggle');
       if (e.key === 'Enter') this.emit('endturn');
-      if (e.key === 'Escape') this.showHelp(false);
+      if (e.key === 't') this.emit('view', 'tour');
+      if (e.key === 'Escape') {
+        this.showHelp(false);
+        this.emit('stoptour');
+      }
     });
   }
 
@@ -113,6 +119,24 @@ export class UI {
 
   setQuality(q) {
     $('#quality').textContent = q === 'high' ? 'HQ' : 'LQ';
+  }
+
+  /** Show or hide the tour overlay; caption() changes the line at the bottom. */
+  setTouring(on) {
+    document.body.classList.toggle('touring', on);
+    $('#tour').classList.toggle('hidden', !on);
+    if (!on) this.tourCaption('');
+  }
+
+  tourCaption(text) {
+    const el = $('#tourcap');
+    el.classList.remove('on');
+    clearTimeout(this.capTimer);
+    if (!text) return;
+    this.capTimer = setTimeout(() => {
+      el.textContent = text;
+      el.classList.add('on');
+    }, 350);
   }
 
   hint(text) {

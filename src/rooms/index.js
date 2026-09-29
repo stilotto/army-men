@@ -53,6 +53,18 @@ const kitchen = {
     { type: 'spoon', c: 9, r: 2, rot: 0 },
     { type: 'spoon', c: 1, r: 6, rot: 0 },
   ],
+  // Show-off flight: camera position, where it looks, seconds to the next shot.
+  tour: [
+    { pos: [0, 230, 50], look: [0, 0, -6], dur: 4, cap: 'Mom’s Kitchen, 1977' },
+    { pos: [70, 70, 60], look: [-10, 0, -10], dur: 4, cap: 'The battlefield' },
+    { pos: [-30, 42, 30], look: [-72, 40, -58], dur: 4, cap: 'The avocado fridge' },
+    { pos: [20, 46, 6], look: [6, 38, -60], dur: 4, cap: 'Range and harvest-gold counters' },
+    { pos: [0, 7, 48], look: [0, 4, -20], dur: 3.5, cap: 'Down on the linoleum' },
+    { pos: [0, 6, -12], look: [0, 4, -40], dur: 4, cap: 'Behind enemy lines' },
+    { pos: [40, 55, -4], look: [88, 60, -4], dur: 4, cap: 'Afternoon sun through the window' },
+    { pos: [-20, 40, 20], look: [-66, 20, 58], dur: 4, cap: 'The dinette' },
+    { pos: [0, 220, 50], look: [0, 0, -6], dur: 3, cap: '' },
+  ],
   window: { z: -4, y: 60, w: 34, h: 40 },
   sun: { from: [240, 194, -14], to: [16, 0, -2], color: '#ffd29a' },
   furnish(group) {
@@ -181,6 +193,19 @@ const stilotto = {
     { type: 'can', c: 8, r: 11, rot: 0 },
     { type: 'spoon', c: 12, r: 14, rot: 0 },
     { type: 'sponge', c: 6, r: 16, rot: 0.3 },
+  ],
+  // Show-off flight: camera position, where it looks, seconds to the next shot.
+  tour: [
+    { pos: [0, 300, 60], look: [0, 0, -4], dur: 4, cap: 'Stilotto’s Kitchen, 1977' },
+    { pos: [30, 70, -40], look: [-20, 55, -84], dur: 4, cap: 'Flower-power wallpaper' },
+    { pos: [-20, 36, -80], look: [-44, 34, -58], dur: 3.5, cap: 'The bedroom door' },
+    { pos: [34, 10, -48], look: [-24, 4, -76], dur: 3.5, cap: 'Tan Army’s end' },
+    { pos: [16, 9, -30], look: [16, 4, 30], dur: 3.5, cap: 'Down the aisle' },
+    { pos: [8, 50, -28], look: [60, 58, -28], dur: 4, cap: 'The window over the sink' },
+    { pos: [24, 48, 10], look: [-20, 34, 1], dur: 4, cap: 'Fridge, range and gold counters' },
+    { pos: [-10, 42, 72], look: [44, 22, 50], dur: 4, cap: 'The kitchen table' },
+    { pos: [16, 5, 52], look: [16, 5, -60], dur: 4, cap: 'Green Army’s view' },
+    { pos: [0, 290, 60], look: [0, 0, -4], dur: 3, cap: '' },
   ],
   // Window over the sink in the east wall.
   window: { z: -28, y: 60, w: 30, h: 36 },

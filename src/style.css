@@ -377,3 +377,20 @@ button.link { background: none; text-decoration: underline; margin: 10px auto 0;
   #roll { top: 10px; }
   .panel { padding: 10px 14px; }
 }
+
+/* Fly-through tour */
+body.touring #hud, body.touring #title { display: none !important; }
+#tour { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+#tourcap {
+  position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%);
+  font-family: 'Special Elite', monospace; font-size: 22px; color: #fff8e6;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8); text-align: center; width: 90%;
+  transition: opacity 0.6s; opacity: 0;
+}
+#tourcap.on { opacity: 1; }
+#tourstop {
+  position: absolute; top: 12px; right: 12px; pointer-events: auto;
+  font: 14px 'Patrick Hand', sans-serif; padding: 6px 12px; border: 0; border-radius: 8px;
+  background: rgba(244, 240, 220, 0.92); color: #2a2119; cursor: pointer;
+}
+@media (max-width: 700px) { #tourcap { font-size: 17px; bottom: 40px; } }

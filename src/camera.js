@@ -68,7 +68,67 @@ export class CameraRig {
       : { minDist: 40, maxDist: 190, minPitch: 0.45, maxPitch: 1.45 };
   }
 
+  // ------------------------------------------------------------ tour
+
+  /**
+   * Fly a scripted path. keys: [{ pos, look, dur, cap }], dur = seconds to
+   * the next key. onCaption(text) fires as each shot begins; onEnd when done.
+   */
+  startTour(keys, { onCaption, onEnd } = {}) {
+    const v = (a) => new THREE.Vector3(...a);
+    const pos = [this.camera.position.clone(), ...keys.map((k) => v(k.pos))];
+    const look = [this.cur.target.clone(), ...keys.map((k) => v(k.look))];
+    const times = [0];
+    let t = 2.5; // glide in from wherever we are
+    for (const k of keys) {
+      times.push(t);
+      t += k.dur ?? 4;
+    }
+    this.tour = {
+      keys, times, t: 0, shot: -1, onCaption, onEnd,
+      pos: new THREE.CatmullRomCurve3(pos, false, 'centripetal'),
+      look: new THREE.CatmullRomCurve3(look, false, 'centripetal'),
+      lookAt: look[0].clone(),
+    };
+    this.attract = false;
+  }
+
+  stopTour(finished = false) {
+    const tour = this.tour;
+    if (!tour) return;
+    this.tour = null;
+    tour.onEnd?.(finished);
+  }
+
+  updateTour(dt) {
+    const tour = this.tour;
+    tour.t += dt;
+    const { times } = tour;
+    const n = times.length - 1;
+    if (tour.t >= times[n]) {
+      this.stopTour(true);
+      return;
+    }
+    let i = 0;
+    while (i < n - 1 && tour.t >= times[i + 1]) i++;
+    if (i !== tour.shot) {
+      tour.shot = i;
+      tour.onCaption?.(tour.keys[i].cap || '');
+    }
+    // Ease into and out of each shot without coming to a dead stop.
+    const s = Math.min(1, (tour.t - times[i]) / (times[i + 1] - times[i]));
+    const e = 0.4 * s + 0.6 * s * s * (3 - 2 * s);
+    const u = (i + e) / n;
+    this.camera.position.copy(tour.pos.getPoint(u));
+    tour.lookAt.copy(tour.look.getPoint(u));
+    this.camera.lookAt(tour.lookAt);
+  }
+
   update(dt) {
+    if (this.tour) {
+      this.updateTour(dt);
+      return;
+    }
     const w = this.want;
     const c = this.cur;
     const lim = this.limits();
@@ -116,6 +176,10 @@ export class CameraRig {
     const el = this.dom;
     el.addEventListener('contextmenu', (e) => e.preventDefault());
     el.addEventListener('pointerdown', (e) => {
+      if (this.tour) {
+        this.stopTour();
+        return;
+      }
       el.setPointerCapture(e.pointerId);
       this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, button: e.button, shift: e.shiftKey });
       if (this.pointers.size === 1) this.dragged = 0;

@@ -71,7 +71,22 @@ rig.onHover = (e) => {
   world.renderer.domElement.style.cursor = unit ? 'pointer' : 'default';
 };
 
+function startTour() {
+  if (rig.tour || !room.tour) return;
+  sound.ensure();
+  ui.setTouring(true);
+  rig.startTour(room.tour, {
+    onCaption: (t) => ui.tourCaption(t),
+    onEnd: () => {
+      ui.setTouring(false);
+      // Back on the title screen the room keeps slowly turning.
+      if (game.over && !document.getElementById('title').classList.contains('hidden')) rig.attract = true;
+    },
+  });
+}
+
 function setView(mode) {
+  if (mode === 'tour') return startTour();
   if (mode === 'toggle') mode = rig.mode === 'adult' ? 'kid' : 'adult';
   const focus = game.selected ? game.selected.view.root.position : null;
   if (mode === 'kid' && !focus) {
@@ -108,6 +123,7 @@ ui.on('endturn', () => {
   if (!game.busy && game.isHumanTurn()) game.endTurn();
 });
 ui.on('view', setView);
+ui.on('stoptour', () => rig.stopTour());
 ui.on('sound', () => {
   sound.muted = !sound.muted;
   ui.setSound(sound.muted);
@@ -136,13 +152,14 @@ function frame() {
   fx.update(dt);
   dice.update(dt);
   ui.updateLabels();
-  world.setDepthOfField(rig.mode === 'kid', world.camera.position.distanceTo(rig.cur.target));
+  if (rig.tour) world.setDepthOfField(true, world.camera.position.distanceTo(rig.tour.lookAt));
+  else world.setDepthOfField(rig.mode === 'kid', world.camera.position.distanceTo(rig.cur.target));
   if (!NO_RENDER || frames < 3) world.render();
   frames++;
   if (frames === 3) {
     ui.loaded();
     if (params.has('autostart')) ui.emit('start', { room: params.get('room') || 'kitchen', mode: params.get('mode') || 'ai' });
-    if (params.get('view') === 'kid') setView('kid');
+    if (params.get('view')) setView(params.get('view'));
   }
   if (frames === 30) window.done = true;
   requestAnimationFrame(frame);
