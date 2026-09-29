@@ -101,10 +101,9 @@ export class UI {
   }
 
   setView(mode) {
+    this.view = mode;
     document.querySelectorAll('#views button').forEach((b) => b.classList.toggle('on', b.dataset.view === mode));
-    this.hint(mode === 'kid'
-      ? 'Down on the floor! Drag to look around, scroll to crawl closer.'
-      : 'Tap a green soldier to give it orders.');
+    if (this.game) this.update(this.game);
   }
 
   setSound(muted) {
@@ -119,7 +118,8 @@ export class UI {
     $('#hint').textContent = text || '';
   }
 
-  onGameStart() {
+  onGameStart(game) {
+    this.game = game;
     this.showTitle(false);
     $('#roll').classList.add('hidden');
     $('#toasts').innerHTML = '';
@@ -146,6 +146,9 @@ export class UI {
     $('#turn .label').innerHTML = `${t.name} <span class="sub">${who} &middot; round ${game.round}</span>`;
     $('#score').innerHTML = `<span class="g">Green ${game.unitsLeft('green')}</span> standing &middot; <span class="t">Tan ${game.unitsLeft('tan')}</span> standing`;
     $('#endturn').disabled = game.busy || !game.isHumanTurn();
+    if (!game.over && !game.isHumanTurn()) this.hint('Tan is making its moves\u2026');
+    else if (this.view === 'kid') this.hint('Down on the floor! Drag to look around, scroll to crawl closer.');
+    else this.hint(`Tap a ${game.turn} soldier to give it orders.`);
 
     const u = game.selected;
     const card = $('#card');

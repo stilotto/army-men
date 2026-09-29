@@ -37,8 +37,9 @@ export async function runAI(game) {
     .filter((u) => u.alive && u.team === game.turn)
     .sort((a, b) => ORDER.indexOf(a.type) - ORDER.indexOf(b.type));
 
+  const session = game.session;
   for (const u of mine()) {
-    if (game.over) return;
+    if (game.over || game.session !== session) return;
     if (!u.alive) continue;
     let shot = bestShot(game, u, u);
     // Heavy weapons fire from where they are; others fire if the odds are decent.

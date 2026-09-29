@@ -12,6 +12,7 @@ import { POSE_NAMES, getFigure } from './units/figure.js';
 const params = new URLSearchParams(location.search);
 // Test hook: ?step=0.05 advances a fixed time per frame (for slow headless GPUs).
 const FIXED_STEP = parseFloat(params.get('step')) || 0;
+const NO_RENDER = params.has('norender');
 const stage = document.getElementById('stage');
 const world = new World(stage);
 const ui = new UI(world.camera);
@@ -118,7 +119,7 @@ function frame() {
   dice.update(dt);
   ui.updateLabels();
   world.setDepthOfField(rig.mode === 'kid', world.camera.position.distanceTo(rig.cur.target));
-  world.render();
+  if (!NO_RENDER || frames < 3) world.render();
   frames++;
   if (frames === 3) {
     ui.loaded();

@@ -246,8 +246,7 @@ button.link { background: none; text-decoration: underline; margin: 10px auto 0;
 #roll {
   position: absolute;
   top: 84px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 10px;
   background: rgba(243, 233, 210, 0.96);
   border-radius: 6px;
   padding: 8px 14px;

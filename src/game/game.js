@@ -72,6 +72,7 @@ export class Game {
 
   start(roomDef, mode, demo = false) {
     this.clear();
+    this.session = (this.session || 0) + 1;
     this.mode = mode; // 'ai' or 'hotseat'
     this.board = new Board(roomDef, this.world.terrain);
     let id = 0;
@@ -128,10 +129,15 @@ export class Game {
     if (!this.isHumanTurn() && !this.over) {
       this.busy = true;
       this.ui.update(this);
-      setTimeout(() => runAI(this).then(() => {
-        this.busy = false;
-        if (!this.over) this.endTurn();
-      }), 1300);
+      const session = this.session;
+      setTimeout(() => {
+        if (session !== this.session) return;
+        runAI(this).then(() => {
+          if (session !== this.session) return;
+          this.busy = false;
+          if (!this.over) this.endTurn();
+        });
+      }, 1300);
     }
   }
 

@@ -191,11 +191,11 @@ export class Effects {
         size0: 2.2 * size, size1: 0.8, life: rand(0.25, 0.55), drag: 4,
       });
     }
-    for (let i = 0; i < 16 * size; i++) {
-      const v = V(rand(-1, 1), rand(0.4, 1.6), rand(-1, 1)).normalize().multiplyScalar(rand(3, 9) * size);
+    for (let i = 0; i < 24 * size; i++) {
+      const v = V(rand(-1, 1), rand(0.6, 2.2), rand(-1, 1)).normalize().multiplyScalar(rand(4, 11) * size);
       this.emit({
-        pos: pos.clone().setY(1), vel: v, color: new THREE.Color(0.3, 0.27, 0.24), color1: new THREE.Color(0.62, 0.6, 0.57),
-        alpha: 0.65, size0: 2 * size, size1: 7 * size, life: rand(1.6, 2.8), drag: 1.8, fadeIn: 0.1, spin: 0.3,
+        pos: pos.clone().setY(1), vel: v, color: new THREE.Color(0.22, 0.2, 0.18), color1: new THREE.Color(0.66, 0.64, 0.6),
+        alpha: 0.7, size0: 2.5 * size, size1: rand(8, 12) * size, life: rand(2, 3.4), drag: 1.6, gravity: -1.5, fadeIn: 0.08, spin: 0.3,
       });
     }
     // Debris specks.
@@ -291,15 +291,15 @@ export class Effects {
     let acc = 0;
     await this.run(dur, (t, dt) => {
       acc += dt;
-      this.flash(from.clone().addScaledVector(dir, len * 0.5).setY(2), '#ff8a2a', 90, 0.08);
-      while (acc > 0.008) {
-        acc -= 0.008;
+      this.flash(from.clone().addScaledVector(dir, len * 0.6).setY(2), '#ff7a1a', 22 + Math.random() * 10, 0.08);
+      while (acc > 0.012) {
+        acc -= 0.012;
         const speed = len * rand(1.6, 2.1);
         const spread = V(rand(-1, 1), rand(-0.3, 1), rand(-1, 1)).multiplyScalar(len * 0.12);
         this.emit({
           pos: from.clone(), vel: dir.clone().multiplyScalar(speed).add(spread), additive: true,
-          color: new THREE.Color(7, 3.4, 0.9), color1: new THREE.Color(1.2, 0.25, 0.05),
-          size0: 0.4, size1: rand(2.5, 4.5), life: rand(0.35, 0.6), drag: 2.4, gravity: -6,
+          color: new THREE.Color(2.2, 0.85, 0.18), color1: new THREE.Color(0.5, 0.08, 0.01),
+          size0: 0.3, size1: rand(2.2, 4), life: rand(0.35, 0.6), drag: 2.4, gravity: -6, alpha: 0.8,
         });
         if (Math.random() < 0.3) {
           this.emit({
