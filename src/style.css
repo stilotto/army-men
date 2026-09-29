@@ -171,6 +171,7 @@ button.big {
   transition: transform 0.08s;
 }
 button.big:active { transform: translateY(3px); box-shadow: 0 1px 0 #2f3a1a; }
+a.home-link { display: block; text-align: center; margin-top: 6px; font-size: 12px; color: #7a6a54; }
 button.link { background: none; text-decoration: underline; margin: 10px auto 0; display: block; color: #5a4a36; }
 
 /* ---------- loading ---------- */
