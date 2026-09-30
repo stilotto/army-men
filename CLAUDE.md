@@ -17,9 +17,10 @@ Guards in place:
 - `index.html` has an import map that loads three.js from jsDelivr, so the raw
   root works too. **When bumping `three` in package.json, update the version in
   that import map.** Any new bare-module dependency needs an import map entry.
-- The real fix is Settings → Pages → Source → **GitHub Actions** (only the
-  repo owner can change it). Remind the user if "pages build and deployment"
-  runs still appear.
+- Settings → Pages → Source was switched to **GitHub Actions** on 2026-09-30,
+  which stops the second deploy. If "pages build and deployment" runs ever
+  reappear, the setting has been changed back; remind the user (only the
+  repo owner can change it).
 
 After pushing to `main`, check the Actions runs. If a "pages build and
 deployment" run finished after "Deploy to GitHub Pages", re-run the
