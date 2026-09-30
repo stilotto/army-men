@@ -113,6 +113,19 @@
     </div>
   </div>
 
+  <!--
+    Safety net: if GitHub Pages ever serves this raw file instead of the Vite
+    build in dist/, the import map lets the browser load three.js directly.
+    Keep the version in step with package.json. The Vite build ignores it.
+  -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+        "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+      }
+    }
+  </script>
   <script type="module" src="./src/main.js"></script>
 </body>
 </html>
