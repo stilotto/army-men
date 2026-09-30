@@ -111,12 +111,14 @@ export class CameraRig {
     }
     let i = 0;
     while (i < n - 1 && tour.t >= times[i + 1]) i++;
-    if (i !== tour.shot) {
-      tour.shot = i;
-      tour.onCaption?.(tour.keys[i].cap || '');
-    }
     // Ease into and out of each shot without coming to a dead stop.
     const s = Math.min(1, (tour.t - times[i]) / (times[i + 1] - times[i]));
+    // A stop's caption shows from halfway there until halfway to the next.
+    const shot = Math.max(0, i + (s < 0.5 ? 0 : 1) - 1);
+    if (shot !== tour.shot) {
+      tour.shot = shot;
+      tour.onCaption?.(tour.keys[shot].cap || '');
+    }
     const e = 0.4 * s + 0.6 * s * s * (3 - 2 * s);
     const u = (i + e) / n;
     this.camera.position.copy(tour.pos.getPoint(u));

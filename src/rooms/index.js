@@ -198,10 +198,10 @@ const stilotto = {
   // Show-off flight: camera position, where it looks, seconds to the next shot.
   tour: [
     { pos: [0, 300, 60], look: [0, 0, -4], dur: 4, cap: 'Stilotto’s Kitchen, 1977' },
-    { pos: [30, 70, -40], look: [-20, 55, -84], dur: 4, cap: 'Flower-power wallpaper' },
-    { pos: [-20, 36, -80], look: [-44, 34, -58], dur: 3.5, cap: 'The bedroom door' },
+    { pos: [22, 52, -46], look: [-4, 46, -84], dur: 4, cap: 'Flower-power wallpaper' },
+    { pos: [-10, 60, -83], look: [-44, 32, -60], dur: 3.5, cap: 'The bathroom door' },
     { pos: [34, 10, -48], look: [-24, 4, -76], dur: 3.5, cap: 'Tan Army’s end' },
-    { pos: [16, 9, -30], look: [16, 4, 30], dur: 3.5, cap: 'Down the aisle' },
+    { pos: [30, 8, -48], look: [8, 4, 30], dur: 3.5, cap: 'Down the aisle' },
     { pos: [8, 50, -28], look: [60, 58, -28], dur: 4, cap: 'The window over the sink' },
     { pos: [24, 48, 10], look: [-20, 34, 1], dur: 4, cap: 'Fridge, range and gold counters' },
     { pos: [-10, 38, 48], look: [44, 20, 72], dur: 4, cap: 'The kitchen table' },
@@ -218,7 +218,7 @@ const stilotto = {
   walls: [
     { a: [-60, -84], b: [60, -84], n: [0, 1] },
     { a: [60, -84], b: [60, 84], n: [-1, 0], window: true },
-    { a: [-60, -60], b: [-28, -60], n: [0, -1] }, // hallway wall with the bedroom door
+    { a: [-60, -60], b: [-28, -60], n: [0, -1] }, // hallway wall with the bathroom door
     { a: [-28, -60], b: [-28, 36], n: [1, 0] }, // behind the appliances
     { a: [-60, 36], b: [-28, 36], n: [0, 1] }, // end of the hall wall
     // West and south stay open: you look into the rest of the house.
@@ -270,7 +270,7 @@ const stilotto = {
     win.position.set(this.room.x1 - 0.2, 60, this.window.z);
     group.add(win);
 
-    // Bedroom door off the top band.
+    // Bathroom door off the top band.
     const br = P.door(26, 80);
     br.rotation.y = face.north;
     br.position.set(X(16), 0, Z(24));
